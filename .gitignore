@@ -33,3 +33,6 @@ prisma/migrations/
 
 # misc
 .DS_Store
+
+# Claude Code settings
+.claude/
