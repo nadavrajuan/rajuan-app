@@ -1,0 +1,38 @@
+services:
+  app:
+    image: ghcr.io/nadavrajuan/rajuan-app:latest
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rajuan.rule=Host(`rajuan.app`) || Host(`www.rajuan.app`)"
+      - "traefik.http.routers.rajuan.entrypoints=websecure"
+      - "traefik.http.routers.rajuan.tls.certresolver=letsencrypt"
+      - "traefik.http.services.rajuan.loadbalancer.server.port=3000"
+      - "traefik.http.middlewares.rajuan-www-redirect.redirectregex.regex=^https://www\\.rajuan\\.app/(.*)"
+      - "traefik.http.middlewares.rajuan-www-redirect.redirectregex.replacement=https://rajuan.app/$${1}"
+      - "traefik.http.routers.rajuan.middlewares=rajuan-www-redirect"
+    networks:
+      - traefik-public
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rajuan
+      POSTGRES_USER: rajuan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - traefik-public
+
+volumes:
+  postgres_data:
+
+networks:
+  traefik-public:
+    external: true
