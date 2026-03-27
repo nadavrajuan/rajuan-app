@@ -101,6 +101,50 @@ async function main() {
       tags: ['MAX/MSP', 'Audio', 'Creative', 'Recording'],
       categoryId: cats['Creative'],
     },
+    {
+      name: 'MeetMind',
+      description: 'Your AI-powered meeting intelligence and action tracking assistant.',
+      longDescription:
+        'MeetMind automatically monitors your Google Drive for meeting recordings and transcripts, uses AI to generate structured summaries, extract key decisions, and identify action items. It sends follow-up email reports, executes tasks on your behalf, and gives you a smart chat interface to query any past meeting — turning every conversation into clear, trackable outcomes.',
+      url: 'https://meeting-agent.rajuan.app',
+      urlPublic: true,
+      isPublic: true,
+      tags: ['AI', 'Meetings', 'Automation', 'LLM', 'Google Drive'],
+      categoryId: cats['AI'],
+    },
+    {
+      name: 'FinTrack',
+      description: 'Personal finance manager for Israeli bank accounts, invoices, and taxes.',
+      longDescription:
+        'FinTrack is a personal finance management platform built for Israeli freelancers and business owners. It aggregates bank transactions from Leumi and Mizrahi accounts, auto-categorizes expenses using smart tagging rules, and integrates with GreenInvoice for invoice matching and creation. The app provides profit and loss reports, credit card tracking, investment monitoring, and an AI-powered chatbot for financial insights. With a Hebrew RTL interface and full support for Israeli tax deduction logic, FinTrack turns raw bank data into clear, actionable financial visibility.',
+      url: 'https://finapp.rajuan.app',
+      urlPublic: true,
+      isPublic: true,
+      tags: ['Web', 'Finance', 'AI', 'Hebrew', 'Full-Stack'],
+      categoryId: cats['Web'],
+    },
+    {
+      name: 'Persona Memory',
+      description: 'Chat with an AI persona built from your diary.',
+      longDescription:
+        'Persona Memory transforms your personal diary into a living, conversational memory. Upload your journal entries and watch an AI persona emerge — one that knows your history, relationships, emotional patterns, and evolving thoughts. Ask it anything about your past, explore recurring themes, and rediscover your story through intelligent, context-aware conversation.',
+      url: 'https://persona-memory.rajuan.app',
+      urlPublic: true,
+      isPublic: true,
+      tags: ['AI', 'LLM', 'Memory', 'Chat', 'Personal'],
+      categoryId: cats['AI'],
+    },
+    {
+      name: 'MarketingMachine',
+      description: 'Autonomous marketing analytics agent that tracks, analyzes, and surfaces insights.',
+      longDescription:
+        'MarketingMachine is a full-stack autonomous agent that crawls your website, proposes event tracking schemas for PostHog and GA4, generates the tracking code, and optionally pushes it directly to Google Tag Manager — all with your approval at each step. It then runs an iterative analysis loop combining classical statistics and LLM reasoning to surface ranked findings: anomalies, rage clicks, funnel drop-offs, and segment divergences. Results appear in a clean dashboard and as live overlays in a Chrome extension, giving your team actionable insight without the manual instrumentation work.',
+      url: 'https://marketing-machine.rajuan.app',
+      urlPublic: true,
+      isPublic: true,
+      tags: ['AI', 'Analytics', 'Automation', 'LLM', 'Marketing'],
+      categoryId: cats['AI'],
+    },
   ];
 
   for (const p of projects) {
