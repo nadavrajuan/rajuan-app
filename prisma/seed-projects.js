@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   // Ensure required categories exist
-  const needed = ['AI', 'Web'];
+  const needed = ['AI', 'Web', 'Creative'];
   const cats = {};
   for (const name of needed) {
     const cat = await prisma.category.upsert({
@@ -65,6 +65,41 @@ async function main() {
       isPublic: true,
       tags: ['Next.js', 'TypeScript', 'AWS', 'Docker', 'PostgreSQL'],
       categoryId: cats['Web'],
+    },
+    {
+      name: 'AeroPilot API',
+      description:
+        'An intelligent AI-powered API for orchestrating automated drone flight missions.',
+      longDescription:
+        'This project is an advanced backend service that translates natural language commands into actionable drone missions. Leveraging LLMs, it parses user intents to navigate, observe, or collect. It integrates with geocoding and routing services to automatically calculate safe, constraint-aware flight paths and coordinates multi-drone operations for complex aerial tasks.',
+      url: 'https://flyz.rajuan.app',
+      urlPublic: true,
+      isPublic: true,
+      tags: ['AI', 'Drones', 'LLM', 'API', 'Python'],
+      categoryId: cats['AI'],
+    },
+    {
+      name: 'Heybrain',
+      description: 'AI-powered system that maps, understands, and expands human thinking.',
+      longDescription:
+        'HeyBrain is an AI-driven platform designed to explore and structure human thought processes. It helps users capture ideas, connect concepts, and expand them into deeper insights or outputs. By combining analysis, creativity, and interaction, it acts as a thinking partner that enhances clarity, discovery, and decision-making across different domains.',
+      url: 'https://heybrain.ai',
+      urlPublic: true,
+      isPublic: true,
+      tags: ['AI', 'Productivity', 'LLM', 'Knowledge'],
+      categoryId: cats['AI'],
+    },
+    {
+      name: 'AlwaysON',
+      description:
+        'A MAX/MSP listener patch from the sound card input sources which start recording automatically whenever a db threshold is being reached.',
+      longDescription:
+        'AlwaysON removes the pressure of hitting record by continuously capturing your creative flow. It lets you freely explore ideas, knowing every spontaneous moment is saved and accessible. Designed for creators, it ensures you can always return to unexpected insights, turning fleeting thoughts into usable content without interrupting the natural creative process.',
+      url: 'https://github.com/AlwaysOn-Live/AlwaysON/',
+      urlPublic: true,
+      isPublic: true,
+      tags: ['MAX/MSP', 'Audio', 'Creative', 'Recording'],
+      categoryId: cats['Creative'],
     },
   ];
 

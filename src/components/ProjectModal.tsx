@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import TodoSection from './TodoSection';
 
 interface Category { id: string; name: string }
@@ -90,6 +91,15 @@ export default function ProjectModal({
               {project.name.toUpperCase().replace(/\s/g, '_')}.EXE
             </span>
             <div className="flex gap-1 flex-shrink-0 ml-2">
+              <Link
+                href={`/project/${project.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-5 h-5 bevel-raised bg-surface-container-high flex items-center justify-center hover:brightness-125"
+                title="Open in new tab"
+              >
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: '12px' }}>open_in_new</span>
+              </Link>
               <div className="w-5 h-5 bevel-raised bg-primary flex items-center justify-center">
                 <span className="block w-2 h-0.5 bg-on-primary" />
               </div>
