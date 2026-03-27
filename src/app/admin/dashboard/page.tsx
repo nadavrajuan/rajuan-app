@@ -43,7 +43,28 @@ export default function DashboardPage() {
   const [showForm, setShowForm] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [activeSection, setActiveSection] = useState<'projects' | 'categories'>('projects');
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError('');
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (res.ok) {
+      setForm((f) => ({ ...f, imageUrl: data.url }));
+    } else {
+      setUploadError(data.error ?? 'Upload failed');
+    }
+    setUploading(false);
+    // reset input so the same file can be re-selected if needed
+    e.target.value = '';
+  }
 
   async function load() {
     const [projs, cats] = await Promise.all([
@@ -393,15 +414,41 @@ export default function DashboardPage() {
                           </div>
                           <div>
                             <label className="text-[9px] text-on-surface-variant mb-1 block font-bold uppercase tracking-widest">
-                              IMAGE_URL
+                              IMAGE
                             </label>
-                            <input
-                              type="url"
-                              value={form.imageUrl}
-                              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                              placeholder="https://..."
-                              className={inputClass}
-                            />
+                            {/* Preview */}
+                            {form.imageUrl && (
+                              <div className="mb-2 relative">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={form.imageUrl}
+                                  alt="preview"
+                                  className="w-full h-24 object-cover bevel-pressed"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setForm((f) => ({ ...f, imageUrl: '' }))}
+                                  className="absolute top-1 right-1 w-5 h-5 bg-error text-white text-[10px] font-black flex items-center justify-center bevel-raised"
+                                >
+                                  X
+                                </button>
+                              </div>
+                            )}
+                            {/* File picker */}
+                            <label className={`flex items-center justify-center gap-2 py-2 cursor-pointer font-black text-[10px] uppercase tracking-widest ${uploading ? 'bevel-pressed bg-surface-container-high text-outline' : 'bevel-raised bg-secondary text-on-secondary hover:bg-secondary-dim'}`}>
+                              <span className="material-symbols-outlined text-sm">upload</span>
+                              {uploading ? 'UPLOADING...' : form.imageUrl ? 'CHANGE_IMAGE' : 'UPLOAD_IMAGE'}
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/gif,image/webp"
+                                onChange={handleImageUpload}
+                                disabled={uploading}
+                                className="hidden"
+                              />
+                            </label>
+                            {uploadError && (
+                              <p className="text-[9px] text-error font-bold uppercase mt-1">{uploadError}</p>
+                            )}
                           </div>
                         </div>
 

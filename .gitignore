@@ -36,3 +36,6 @@ prisma/migrations/
 
 # Claude Code settings
 .claude/
+
+# uploads
+uploads/
