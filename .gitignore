@@ -37,5 +37,5 @@ prisma/migrations/
 # Claude Code settings
 .claude/
 
-# uploads
-uploads/
+# uploads (root-level only — does not affect src/app/api/uploads/)
+/uploads/
