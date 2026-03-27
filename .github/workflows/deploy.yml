@@ -55,6 +55,7 @@ jobs:
                   JWT_SECRET: ${JWT_SECRET}
                   NODE_ENV: production
                   UPLOAD_DIR: /app/uploads
+                  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
                 labels:
                   - "traefik.enable=true"
                   - "traefik.http.routers.rajuan.rule=Host(`rajuan.app`) || Host(`www.rajuan.app`)"

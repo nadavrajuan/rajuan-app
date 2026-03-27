@@ -49,7 +49,29 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [generating, setGenerating] = useState(false);
   const [activeSection, setActiveSection] = useState<'projects' | 'ideas' | 'categories'>('projects');
+
+  async function handleGenerateImage() {
+    if (!form.description && !form.name) {
+      setUploadError('Add a name or description first');
+      return;
+    }
+    setGenerating(true);
+    setUploadError('');
+    const res = await fetch('/api/admin/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: form.name, description: form.description || form.longDescription }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setForm((f) => ({ ...f, imageUrl: data.url }));
+    } else {
+      setUploadError(data.error ?? 'Generation failed');
+    }
+    setGenerating(false);
+  }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -475,18 +497,29 @@ export default function DashboardPage() {
                                 </button>
                               </div>
                             )}
-                            {/* File picker */}
-                            <label className={`flex items-center justify-center gap-2 py-2 cursor-pointer font-black text-[10px] uppercase tracking-widest ${uploading ? 'bevel-pressed bg-surface-container-high text-outline' : 'bevel-raised bg-secondary text-on-secondary hover:bg-secondary-dim'}`}>
-                              <span className="material-symbols-outlined text-sm">upload</span>
-                              {uploading ? 'UPLOADING...' : form.imageUrl ? 'CHANGE_IMAGE' : 'UPLOAD_IMAGE'}
-                              <input
-                                type="file"
-                                accept="image/jpeg,image/png,image/gif,image/webp"
-                                onChange={handleImageUpload}
-                                disabled={uploading}
-                                className="hidden"
-                              />
-                            </label>
+                            {/* Image actions */}
+                            <div className="flex gap-2">
+                              <label className={`flex-1 flex items-center justify-center gap-1 py-2 cursor-pointer font-black text-[10px] uppercase tracking-widest ${uploading ? 'bevel-pressed bg-surface-container-high text-outline' : 'bevel-raised bg-secondary text-on-secondary hover:brightness-110'}`}>
+                                <span className="material-symbols-outlined text-sm">upload</span>
+                                {uploading ? 'UPLOADING...' : 'UPLOAD'}
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/gif,image/webp"
+                                  onChange={handleImageUpload}
+                                  disabled={uploading || generating}
+                                  className="hidden"
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={handleGenerateImage}
+                                disabled={uploading || generating}
+                                className={`flex-1 flex items-center justify-center gap-1 py-2 font-black text-[10px] uppercase tracking-widest ${generating ? 'bevel-pressed bg-surface-container-high text-outline' : 'bevel-raised bg-violet-700 text-white hover:brightness-110'}`}
+                              >
+                                <span className="material-symbols-outlined text-sm">auto_awesome</span>
+                                {generating ? 'GENERATING...' : 'AI_GEN'}
+                              </button>
+                            </div>
                             {uploadError && (
                               <p className="text-[9px] text-error font-bold uppercase mt-1">{uploadError}</p>
                             )}

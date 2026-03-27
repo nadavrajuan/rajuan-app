@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <!-- Outline / shadow -->
+  <path d="M3 1 L3 27 L8 21 L12 31 L17 29 L13 19 L20 19 Z" fill="#001820" />
+  <!-- Neon cyan fill -->
+  <path d="M1 1 L1 25 L6 19 L10 29 L15 27 L11 17 L18 17 Z" fill="#00e3fd" />
+</svg>
