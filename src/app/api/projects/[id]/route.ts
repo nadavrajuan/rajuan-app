@@ -25,7 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { name, description, url, urlPublic, isPublic, tags, categoryId } = body;
+  const { name, description, url, imageUrl, urlPublic, isPublic, tags, categoryId } = body;
 
   const project = await prisma.project.update({
     where: { id: params.id },
@@ -33,6 +33,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       name,
       description: description ?? undefined,
       url: url ?? undefined,
+      imageUrl: imageUrl ?? undefined,
       urlPublic: urlPublic ?? undefined,
       isPublic: isPublic ?? undefined,
       tags: tags ?? undefined,

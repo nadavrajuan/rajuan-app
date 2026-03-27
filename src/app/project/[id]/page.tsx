@@ -65,7 +65,16 @@ export default async function ProjectPage({ params }: { params: { id: string } }
           </div>
 
           {/* Window body */}
-          <div className="p-6 bg-surface-container-low space-y-5">
+          <div className="bg-surface-container-low">
+            {/* Project image */}
+            {project.imageUrl && (
+              <div className="bevel-pressed overflow-hidden aspect-video">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={project.imageUrl} alt={project.name} className="w-full h-full object-cover" />
+              </div>
+            )}
+
+          <div className="p-6 space-y-5">
             {/* Path */}
             <div className="font-mono text-[9px] text-violet-500/70 break-all">{path}</div>
 
@@ -137,6 +146,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                 })}
               </span>
             </div>
+          </div>
           </div>
         </div>
       </main>

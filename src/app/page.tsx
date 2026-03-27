@@ -14,6 +14,7 @@ interface Project {
   name: string;
   description: string | null;
   url: string | null;
+  imageUrl: string | null;
   urlPublic: boolean;
   isPublic: boolean;
   tags: string[];

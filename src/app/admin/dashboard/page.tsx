@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import TagInput from '@/components/TagInput';
 
 interface Category {
   id: string;
@@ -14,6 +15,7 @@ interface Project {
   name: string;
   description: string | null;
   url: string | null;
+  imageUrl: string | null;
   urlPublic: boolean;
   isPublic: boolean;
   tags: string[];
@@ -25,9 +27,10 @@ const emptyForm = {
   name: '',
   description: '',
   url: '',
+  imageUrl: '',
   urlPublic: true,
   isPublic: true,
-  tags: '',
+  tags: [] as string[],
   categoryId: '',
 };
 
@@ -66,9 +69,10 @@ export default function DashboardPage() {
       name: p.name,
       description: p.description || '',
       url: p.url || '',
+      imageUrl: p.imageUrl || '',
       urlPublic: p.urlPublic,
       isPublic: p.isPublic,
-      tags: p.tags.join(', '),
+      tags: p.tags,
       categoryId: p.categoryId || '',
     });
     setShowForm(true);
@@ -89,9 +93,10 @@ export default function DashboardPage() {
       name: form.name,
       description: form.description || null,
       url: form.url || null,
+      imageUrl: form.imageUrl || null,
       urlPublic: form.urlPublic,
       isPublic: form.isPublic,
-      tags: form.tags ? form.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
+      tags: form.tags,
       categoryId: form.categoryId || null,
     };
 
@@ -388,15 +393,30 @@ export default function DashboardPage() {
                           </div>
                           <div>
                             <label className="text-[9px] text-on-surface-variant mb-1 block font-bold uppercase tracking-widest">
-                              TAGS (comma-separated)
+                              IMAGE_URL
                             </label>
                             <input
-                              value={form.tags}
-                              onChange={(e) => setForm({ ...form, tags: e.target.value })}
-                              placeholder="react, api, open-source"
+                              type="url"
+                              value={form.imageUrl}
+                              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+                              placeholder="https://..."
                               className={inputClass}
                             />
                           </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[9px] text-on-surface-variant mb-1 block font-bold uppercase tracking-widest">
+                            TAGS
+                          </label>
+                          <TagInput
+                            value={form.tags}
+                            onChange={(tags) => setForm({ ...form, tags })}
+                            suggestions={Array.from(new Set(projects.flatMap((p) => p.tags))).sort()}
+                          />
+                          <p className="text-[8px] text-outline mt-1 uppercase">
+                            Type + enter to add · click suggestion to reuse · backspace to remove
+                          </p>
                         </div>
 
                         <div className="flex flex-wrap gap-4">

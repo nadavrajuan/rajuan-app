@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { name, description, url, urlPublic, isPublic, tags, categoryId } = body;
+  const { name, description, url, imageUrl, urlPublic, isPublic, tags, categoryId } = body;
 
   if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 });
 
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
       name,
       description: description || null,
       url: url || null,
+      imageUrl: imageUrl || null,
       urlPublic: urlPublic ?? true,
       isPublic: isPublic ?? true,
       tags: tags || [],

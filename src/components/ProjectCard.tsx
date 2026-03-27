@@ -7,6 +7,7 @@ interface Project {
   name: string;
   description: string | null;
   url: string | null;
+  imageUrl: string | null;
   urlPublic: boolean;
   isPublic: boolean;
   tags: string[];
@@ -33,12 +34,28 @@ export default function ProjectCard({
 
   return (
     <div className="bevel-raised bg-surface-container-low p-2 flex flex-col gap-2 hover:bg-surface-container-high group">
-      {/* Thumbnail placeholder */}
+      {/* Thumbnail */}
       <div
         className="aspect-video w-full bevel-pressed overflow-hidden relative"
-        style={{ background: getCardGradient(project.name) }}
+        style={project.imageUrl ? {} : { background: getCardGradient(project.name) }}
       >
-        <div className="absolute inset-0 retro-grid opacity-60" />
+        {project.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={project.imageUrl}
+            alt={project.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <>
+            <div className="absolute inset-0 retro-grid opacity-60" />
+            <div className="absolute inset-0 flex items-center justify-center opacity-20">
+              <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                folder_zip
+              </span>
+            </div>
+          </>
+        )}
         {/* Admin badges */}
         <div className="absolute top-1 right-1 flex gap-1">
           {isAdmin && !project.isPublic && (
@@ -49,12 +66,6 @@ export default function ProjectCard({
               LINK_HIDDEN
             </span>
           )}
-        </div>
-        {/* Center icon */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-20">
-          <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-            folder_zip
-          </span>
         </div>
       </div>
 
