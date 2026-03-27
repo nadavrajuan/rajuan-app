@@ -117,7 +117,10 @@ export default function HomePage() {
         <ProjectModal
           project={selectedProject}
           isAdmin={isAdmin}
-          onClose={() => setSelectedProject(null)}
+          onClose={() => {
+            setSelectedProject(null);
+            window.history.pushState({}, '', '/');
+          }}
         />
       )}
 
@@ -396,7 +399,10 @@ export default function HomePage() {
                         key={project.id}
                         project={project}
                         isAdmin={isAdmin}
-                        onSelect={setSelectedProject}
+                        onSelect={(p) => {
+                          setSelectedProject(p);
+                          window.history.pushState({}, '', `/project/${p.id}`);
+                        }}
                       />
                     ))}
                   </div>
