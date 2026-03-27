@@ -17,13 +17,13 @@ export async function POST(req: NextRequest) {
 
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  const prompt = `App icon / hero image for a software project called "${name}". ${description ? `The project: ${description}` : ''} Style: clean, modern, dark background, glowing neon accents, tech-focused, no text, square composition.`;
+  const prompt = `Create a hero image for a software project called "${name}".${description ? ` What this project does: ${description}` : ''} Choose the visual style, mood, color palette, and composition that best captures the essence and purpose of this specific project — let the subject matter guide everything. No text, no logos, no UI mockups. Landscape composition.`;
 
   const response = await openai.images.generate({
     model: 'dall-e-3',
     prompt,
     n: 1,
-    size: '1024x1024',
+    size: '1792x1024',
     response_format: 'url',
   });
 
