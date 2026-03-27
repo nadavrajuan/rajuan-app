@@ -35,15 +35,6 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-      - name: Copy compose file to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: docker-compose.yml
-          target: /home/ubuntu/rajuan-app/
-
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1
         with:
@@ -51,8 +42,73 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            mkdir -p /home/ubuntu/rajuan-app
+
+            # Write the docker-compose.yml directly so it's always up-to-date
+            cat > /home/ubuntu/rajuan-app/docker-compose.yml << 'COMPOSE_EOF'
+            services:
+              app:
+                image: ghcr.io/nadavrajuan/rajuan-app:latest
+                restart: unless-stopped
+                environment:
+                  DATABASE_URL: ${DATABASE_URL}
+                  JWT_SECRET: ${JWT_SECRET}
+                  NODE_ENV: production
+                  UPLOAD_DIR: /app/uploads
+                labels:
+                  - "traefik.enable=true"
+                  - "traefik.http.routers.rajuan.rule=Host(`rajuan.app`) || Host(`www.rajuan.app`)"
+                  - "traefik.http.routers.rajuan.entrypoints=websecure"
+                  - "traefik.http.routers.rajuan.tls.certresolver=letsencrypt"
+                  - "traefik.http.services.rajuan.loadbalancer.server.port=3000"
+                  - "traefik.http.middlewares.rajuan-www-redirect.redirectregex.regex=^https://www\\.rajuan\\.app/(.*)"
+                  - "traefik.http.middlewares.rajuan-www-redirect.redirectregex.replacement=https://rajuan.app/$${1}"
+                  - "traefik.http.routers.rajuan.middlewares=rajuan-www-redirect"
+                volumes:
+                  - uploads_data:/app/uploads
+                networks:
+                  - traefik-public
+
+              db:
+                image: postgres:16-alpine
+                restart: unless-stopped
+                environment:
+                  POSTGRES_DB: rajuan
+                  POSTGRES_USER: rajuan
+                  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+                volumes:
+                  - postgres_data:/var/lib/postgresql/data
+                networks:
+                  - traefik-public
+
+            volumes:
+              postgres_data:
+              uploads_data:
+
+            networks:
+              traefik-public:
+                external: true
+            COMPOSE_EOF
+
             cd /home/ubuntu/rajuan-app
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
             docker compose up -d
             docker image prune -f
+
+      - name: Verify uploads directory works
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/rajuan-app
+            # Wait for container to be healthy
+            sleep 8
+            # Verify the uploads dir is mounted and writable inside the container
+            docker compose exec -T app sh -c 'echo ok > /app/uploads/_healthcheck && cat /app/uploads/_healthcheck && rm /app/uploads/_healthcheck'
+            echo "Uploads directory: OK"
+            # Verify the site is up
+            curl -sf https://rajuan.app/ > /dev/null
+            echo "Site health check: OK"
