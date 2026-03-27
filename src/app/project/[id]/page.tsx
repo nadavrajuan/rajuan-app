@@ -18,83 +18,151 @@ export default async function ProjectPage({ params }: { params: { id: string } }
 
   const showUrl = isAdmin || project.urlPublic;
 
+  const path = project.category
+    ? `/ROOT/PROJECTS/${project.category.name.toUpperCase().replace(/\s/g, '_')}/${project.name.toUpperCase().replace(/\s/g, '_')}`
+    : `/ROOT/PROJECTS/MISC/${project.name.toUpperCase().replace(/\s/g, '_')}`;
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-neutral-800 px-6 py-5">
-        <Link href="/" className="text-sm text-neutral-500 hover:text-white transition-colors">
-          ← Back to gallery
+    <div className="bg-background text-on-background min-h-screen font-sans relative overflow-hidden">
+      {/* Overlays */}
+      <div className="fixed inset-0 crt-overlay z-[100] pointer-events-none" />
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-indigo-950/50 via-transparent to-violet-950/80 pointer-events-none" />
+      <div className="fixed inset-0 z-0 retro-grid pointer-events-none" />
+
+      {/* Fixed Header */}
+      <header
+        className="fixed top-0 w-full h-8 border-b-2 border-violet-400 bg-violet-950/80 backdrop-blur-md flex items-center px-4 z-50"
+        style={{ boxShadow: 'inset 2px 2px 0px #b99fff, 0 0 15px rgba(185,159,255,0.3)' }}
+      >
+        <Link href="/" className="text-[10px] text-secondary font-bold uppercase hover:text-primary flex items-center gap-1">
+          <span className="material-symbols-outlined text-xs">arrow_back</span>
+          BACK_TO_EXPLORER
         </Link>
+        <div className="flex-1" />
+        <span className="text-primary font-black tracking-widest uppercase text-xs">RAJUAN.EXE</span>
       </header>
 
-      <main className="max-w-2xl mx-auto px-6 py-12">
-        {project.category && (
-          <span className="text-xs font-medium text-neutral-500 uppercase tracking-wider">
-            {project.category.name}
-          </span>
-        )}
+      {/* Main */}
+      <main className="relative z-10 flex items-center justify-center min-h-screen px-4 py-16">
+        {/* Floating window */}
+        <div
+          className="w-full max-w-2xl bevel-raised bg-surface-container"
+          style={{ boxShadow: '8px 8px 0px 0px rgba(26,28,28,0.5)' }}
+        >
+          {/* Window title bar */}
+          <div className="bg-primary-container px-3 py-1 flex justify-between items-center">
+            <span className="text-on-primary-container font-black text-xs uppercase tracking-widest truncate">
+              {project.name.toUpperCase().replace(/\s/g, '_')}.EXE
+            </span>
+            <div className="flex gap-1 flex-shrink-0 ml-2">
+              <div className="w-5 h-5 bevel-raised bg-primary flex items-center justify-center">
+                <span className="block w-2 h-0.5 bg-on-primary" />
+              </div>
+              <Link href="/" className="w-5 h-5 bevel-raised bg-error flex items-center justify-center text-white text-[10px] font-bold">
+                X
+              </Link>
+            </div>
+          </div>
 
-        <div className="flex items-start justify-between gap-4 mt-2">
-          <h1 className="text-3xl font-semibold">{project.name}</h1>
-          {isAdmin && (
-            <div className="flex gap-2 flex-shrink-0 mt-1">
-              {!project.isPublic && (
-                <span className="text-xs px-2 py-1 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full">
-                  Private
+          {/* Window body */}
+          <div className="p-6 bg-surface-container-low space-y-5">
+            {/* Path */}
+            <div className="font-mono text-[9px] text-violet-500/70 break-all">{path}</div>
+
+            {/* Category + status badges */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {project.category && (
+                <span className="text-[10px] font-bold bg-indigo-900 text-violet-300 px-2 py-0.5 border border-violet-500/30 uppercase">
+                  {project.category.name}
                 </span>
               )}
-              {project.url && !project.urlPublic && (
-                <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full">
-                  Link hidden
+              {isAdmin && !project.isPublic && (
+                <span className="text-[10px] font-bold bg-amber-600 text-black px-2 py-0.5 uppercase">
+                  PRIVATE
+                </span>
+              )}
+              {isAdmin && project.url && !project.urlPublic && (
+                <span className="text-[10px] font-bold bg-secondary text-on-secondary px-2 py-0.5 uppercase">
+                  LINK_HIDDEN
                 </span>
               )}
             </div>
-          )}
-        </div>
 
-        {project.description && (
-          <p className="mt-6 text-neutral-300 leading-relaxed text-base whitespace-pre-wrap">
-            {project.description}
-          </p>
-        )}
+            {/* Project name */}
+            <h1 className="text-2xl font-black text-primary uppercase leading-tight">{project.name}</h1>
 
-        {project.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-6">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs px-2.5 py-1 bg-neutral-800 text-neutral-400 rounded-full"
+            {/* Description */}
+            {project.description && (
+              <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-wrap">
+                {project.description}
+              </p>
+            )}
+
+            {/* Tags */}
+            {project.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {project.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-[10px] font-bold bg-indigo-900 text-violet-300 px-2 py-0.5 border border-violet-500/30"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Visit button */}
+            {showUrl && project.url && (
+              <a
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bevel-raised bg-primary text-on-primary font-black text-xs uppercase tracking-widest hover:bg-primary-container"
               >
-                #{tag}
+                <span className="material-symbols-outlined text-sm">rocket_launch</span>
+                EXECUTE: VISIT_PROJECT
+              </a>
+            )}
+
+            {/* Metadata panel */}
+            <div className="bg-surface-container-high -mx-6 px-6 py-3 mt-4 flex justify-between items-center">
+              <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">METADATA</span>
+              <span className="font-mono text-[10px] text-on-surface-variant">
+                TIMESTAMP:{' '}
+                {new Date(project.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
               </span>
-            ))}
+            </div>
           </div>
-        )}
-
-        {showUrl && project.url && (
-          <div className="mt-8">
-            <a
-              href={project.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-neutral-950 rounded-xl font-medium hover:bg-neutral-200 transition-colors"
-            >
-              Visit project
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </a>
-          </div>
-        )}
-
-        <div className="mt-10 pt-6 border-t border-neutral-800 text-xs text-neutral-600">
-          Added {new Date(project.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
       </main>
+
+      {/* Fixed Footer */}
+      <footer
+        className="fixed bottom-0 left-0 w-full h-12 bg-indigo-900/90 backdrop-blur-xl z-50 flex items-center px-2 gap-2 border-t-4 border-indigo-950"
+        style={{ boxShadow: '0 -4px 20px rgba(0,227,253,0.2), inset 2px 2px 0px #b99fff' }}
+      >
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-4 h-9 bg-violet-600 text-white font-black text-[10px] tracking-tight uppercase scale-95"
+          style={{ boxShadow: 'inset 3px 3px 0px #38008d' }}
+        >
+          <span className="material-symbols-outlined text-lg">apps</span>
+          START
+        </Link>
+        <div className="h-9 w-[2px] bg-indigo-950 mx-1" />
+        <button
+          className="flex items-center gap-2 px-3 h-9 bg-violet-600 text-white font-bold text-[10px] scale-95"
+          style={{ boxShadow: 'inset 3px 3px 0px #38008d' }}
+        >
+          <span className="material-symbols-outlined text-sm">description</span>
+          {project.name.toUpperCase().replace(/\s/g, '_').slice(0, 20)}.EXE
+        </button>
+      </footer>
     </div>
   );
 }

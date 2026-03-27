@@ -13,6 +13,13 @@ interface Project {
   category: { id: string; name: string } | null;
 }
 
+function getCardGradient(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = Math.abs(hash) % 360;
+  return `linear-gradient(135deg, hsl(${hue}, 40%, 12%) 0%, hsl(${(hue + 80) % 360}, 30%, 8%) 100%)`;
+}
+
 export default function ProjectCard({
   project,
   isAdmin,
@@ -20,44 +27,52 @@ export default function ProjectCard({
   project: Project;
   isAdmin: boolean;
 }) {
+  const path = project.category
+    ? `/ROOT/PROJECTS/${project.category.name.toUpperCase().replace(/\s/g, '_')}`
+    : '/ROOT/PROJECTS/MISC';
+
   return (
-    <div className="group relative bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden hover:border-neutral-600 transition-all duration-200 hover:shadow-xl hover:shadow-black/40">
-      {/* Admin badges */}
-      {isAdmin && (
-        <div className="absolute top-3 right-3 flex gap-1.5 z-10">
-          {!project.isPublic && (
-            <span className="text-[10px] px-1.5 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full font-medium">
-              Private
-            </span>
+    <div className="bevel-raised bg-surface-container-low p-2 flex flex-col gap-2 hover:bg-surface-container-high group">
+      {/* Thumbnail placeholder */}
+      <div
+        className="aspect-video w-full bevel-pressed overflow-hidden relative"
+        style={{ background: getCardGradient(project.name) }}
+      >
+        <div className="absolute inset-0 retro-grid opacity-60" />
+        {/* Admin badges */}
+        <div className="absolute top-1 right-1 flex gap-1">
+          {isAdmin && !project.isPublic && (
+            <span className="bg-amber-600 text-black text-[8px] font-bold px-1 py-0.5">PRIVATE</span>
           )}
-          {project.url && !project.urlPublic && (
-            <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full font-medium">
-              Link hidden
+          {isAdmin && project.url && !project.urlPublic && (
+            <span className="bg-secondary text-on-secondary text-[8px] font-bold px-1 py-0.5">
+              LINK_HIDDEN
             </span>
           )}
         </div>
-      )}
-
-      {/* Card content */}
-      <div className="p-5">
-        {project.category && (
-          <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">
-            {project.category.name}
+        {/* Center icon */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-20">
+          <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+            folder_zip
           </span>
-        )}
-        <h3 className="text-base font-semibold mt-1 mb-2 leading-tight">{project.name}</h3>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="flex flex-col gap-1">
+        <div className="font-mono text-[7px] text-violet-500/70 truncate">{path}</div>
+        <h3 className="text-xs font-black text-primary truncate uppercase">{project.name}</h3>
         {project.description && (
-          <p className="text-sm text-neutral-400 line-clamp-3 leading-relaxed">
+          <p className="text-[10px] text-on-surface-variant line-clamp-2 leading-relaxed">
             {project.description}
           </p>
         )}
-
         {project.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {project.tags.map((tag) => (
+          <div className="flex flex-wrap gap-1">
+            {project.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="text-[11px] px-2 py-0.5 bg-neutral-800 text-neutral-400 rounded-full"
+                className="text-[8px] font-bold bg-indigo-900 text-violet-300 px-1 border border-violet-500/30"
               >
                 {tag}
               </span>
@@ -66,22 +81,24 @@ export default function ProjectCard({
         )}
       </div>
 
-      {/* Footer */}
-      <div className="px-5 pb-4 flex items-center gap-2">
+      {/* Actions */}
+      <div className="flex gap-1 mt-auto">
         <Link
           href={`/project/${project.id}`}
-          className="text-sm text-neutral-400 hover:text-white transition-colors"
+          className="flex-1 bevel-raised bg-surface-container-high text-primary py-1.5 font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary hover:text-on-primary"
         >
-          More info →
+          <span className="material-symbols-outlined text-[12px]">info</span>
+          INFO
         </Link>
-        {project.url && (
+        {project.url && (project.urlPublic || isAdmin) && (
           <a
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto text-sm px-3 py-1.5 bg-white text-neutral-950 rounded-lg font-medium hover:bg-neutral-200 transition-colors"
+            className="flex-1 bevel-raised bg-primary text-on-primary py-1.5 font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary-container"
           >
-            Visit
+            <span className="material-symbols-outlined text-[12px]">rocket_launch</span>
+            VISIT
           </a>
         )}
       </div>

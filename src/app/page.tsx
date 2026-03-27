@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import ProjectCard from '@/components/ProjectCard';
-import FilterBar from '@/components/FilterBar';
 
 interface Category {
   id: string;
@@ -20,6 +19,24 @@ interface Project {
   tags: string[];
   category: Category | null;
   createdAt: string;
+}
+
+function CyberClock() {
+  const [time, setTime] = useState('');
+  useEffect(() => {
+    const update = () =>
+      setTime(
+        new Date().toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        })
+      );
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, []);
+  return <span className="font-mono text-[10px] font-bold text-secondary">{time}</span>;
 }
 
 export default function HomePage() {
@@ -56,30 +73,40 @@ export default function HomePage() {
 
   const allTags = Array.from(new Set(projects.flatMap((p) => p.tags))).sort();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-6 h-6 border-2 border-neutral-600 border-t-white rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const activeCategoryName = categories.find((c) => c.id === activeCategory)?.name;
+  const path = activeCategoryName
+    ? `/ROOT/PROJECTS/${activeCategoryName.toUpperCase().replace(/\s/g, '_')}`
+    : '/ROOT/PROJECTS/ALL';
 
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="border-b border-neutral-800 px-6 py-5 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Rajuan</h1>
-          <p className="text-sm text-neutral-400 mt-0.5">Projects &amp; experiments</p>
+    <div className="bg-background text-on-background min-h-screen font-sans overflow-hidden">
+      {/* CRT scanline overlay */}
+      <div className="fixed inset-0 crt-overlay z-[100] pointer-events-none" />
+
+      {/* Background gradient */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-indigo-950/50 via-transparent to-violet-950/80 pointer-events-none" />
+
+      {/* Fixed Header */}
+      <header
+        className="fixed top-0 w-full h-8 border-b-2 border-violet-400 bg-violet-950/80 backdrop-blur-md flex justify-between items-center px-4 z-50"
+        style={{ boxShadow: 'inset 2px 2px 0px #b99fff, 0 0 15px rgba(185,159,255,0.3)' }}
+      >
+        <div className="flex items-center gap-4">
+          <span className="text-primary font-black tracking-widest uppercase text-xs">RAJUAN.EXE</span>
+          <nav className="hidden md:flex gap-4">
+            <span className="text-secondary text-xs font-bold" style={{ textShadow: '0 0 5px #00e3fd' }}>
+              PROJECTS
+            </span>
+          </nav>
         </div>
         <div className="flex items-center gap-3">
-          {isAdmin && (
+          {isAdmin ? (
             <>
               <Link
                 href="/admin/dashboard"
-                className="text-sm px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 rounded-md transition-colors"
+                className="text-[10px] text-primary hover:text-secondary font-bold uppercase"
               >
-                Dashboard
+                ADMIN
               </Link>
               <button
                 onClick={async () => {
@@ -87,53 +114,253 @@ export default function HomePage() {
                   setIsAdmin(false);
                   fetchProjects();
                 }}
-                className="text-sm px-3 py-1.5 text-neutral-400 hover:text-white transition-colors"
+                className="text-[10px] text-error font-bold uppercase hover:bg-error-container px-1"
               >
-                Logout
+                LOGOUT
               </button>
             </>
-          )}
-          {!isAdmin && (
-            <Link
-              href="/admin/login"
-              className="text-xs text-neutral-600 hover:text-neutral-400 transition-colors"
-            >
-              Login
+          ) : (
+            <Link href="/admin/login" className="text-[10px] text-outline hover:text-primary font-bold uppercase">
+              LOGIN
             </Link>
           )}
         </div>
       </header>
 
-      {/* Filters */}
-      <FilterBar
-        categories={categories}
-        tags={allTags}
-        activeCategory={activeCategory}
-        activeTag={activeTag}
-        onCategoryChange={(id) => {
-          setActiveCategory(id === activeCategory ? null : id);
-          setActiveTag(null);
-        }}
-        onTagChange={(tag) => {
-          setActiveTag(tag === activeTag ? null : tag);
-          setActiveCategory(null);
-        }}
-      />
+      {/* Main layout: header=2rem, footer=3rem → content=calc(100vh-5rem) */}
+      <div
+        className="relative z-10 flex"
+        style={{ height: 'calc(100vh - 5rem)', marginTop: '2rem' }}
+      >
+        {/* Sidebar — desktop only */}
+        <aside
+          className="hidden md:flex flex-col w-64 border-r-4 border-indigo-900 bg-indigo-950 flex-shrink-0"
+          style={{ boxShadow: '2px 0px 0px #b99fff' }}
+        >
+          {/* Operator profile */}
+          <div className="px-4 py-5 border-b border-indigo-900">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bevel-raised bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                <span className="text-primary font-black text-lg">R</span>
+              </div>
+              <div>
+                <div className="text-secondary font-black text-xs uppercase">OPERATOR_01</div>
+                <div className="text-primary text-[10px] font-bold">
+                  {isAdmin ? 'STATUS: ADMIN' : 'STATUS: VISITOR'}
+                </div>
+              </div>
+            </div>
+          </div>
 
-      {/* Grid */}
-      <main className="px-6 py-8 max-w-7xl mx-auto">
-        {projects.length === 0 ? (
-          <div className="text-center py-24 text-neutral-500">
-            {activeCategory || activeTag ? 'No projects match this filter.' : 'No projects yet.'}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} isAdmin={isAdmin} />
-            ))}
-          </div>
-        )}
-      </main>
+          {/* Category nav */}
+          <nav className="flex-1 py-4 overflow-y-auto">
+            <div className="space-y-1 px-2">
+              <button
+                onClick={() => {
+                  setActiveCategory(null);
+                  setActiveTag(null);
+                }}
+                className={`flex items-center gap-3 w-full px-3 py-2 font-black text-xs uppercase text-left ${
+                  !activeCategory
+                    ? 'bg-violet-500 text-indigo-950'
+                    : 'text-violet-400 hover:border-2 hover:border-cyan-400'
+                }`}
+                style={!activeCategory ? { boxShadow: 'inset -3px -3px 0px #38008d' } : {}}
+              >
+                <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  folder_special
+                </span>
+                ALL_PROJECTS
+              </button>
+              {loading
+                ? null
+                : categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setActiveCategory(cat.id === activeCategory ? null : cat.id);
+                        setActiveTag(null);
+                      }}
+                      className={`flex items-center gap-3 w-full px-3 py-2 font-black text-xs uppercase text-left ${
+                        activeCategory === cat.id
+                          ? 'bg-violet-500 text-indigo-950'
+                          : 'text-violet-400 hover:border-2 hover:border-cyan-400'
+                      }`}
+                      style={activeCategory === cat.id ? { boxShadow: 'inset -3px -3px 0px #38008d' } : {}}
+                    >
+                      <span
+                        className="material-symbols-outlined text-sm"
+                        style={{ fontVariationSettings: activeCategory === cat.id ? "'FILL' 1" : "'FILL' 0" }}
+                      >
+                        folder
+                      </span>
+                      {cat.name.toUpperCase().replace(/\s/g, '_')}
+                    </button>
+                  ))}
+            </div>
+          </nav>
+
+          {isAdmin && (
+            <div className="p-4">
+              <Link
+                href="/admin/dashboard"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-error bevel-raised font-bold text-xs uppercase hover:bg-error-container"
+              >
+                <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
+                ADMIN_CONSOLE
+              </Link>
+            </div>
+          )}
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 p-2 md:p-8 relative overflow-hidden">
+          {/* Retro grid */}
+          <div className="absolute inset-0 retro-grid pointer-events-none" />
+
+          {loading ? (
+            <div className="absolute inset-2 md:inset-8 flex items-center justify-center">
+              <div className="text-secondary font-black text-xs uppercase animate-pulse tracking-widest">
+                LOADING_PROJECTS...
+              </div>
+            </div>
+          ) : (
+            <div
+              className="absolute inset-2 md:inset-8 bevel-raised bg-surface-container flex flex-col"
+              style={{ boxShadow: '0 0 24px rgba(185,159,255,0.15)' }}
+            >
+              {/* Window title bar */}
+              <div className="bg-primary-container px-3 py-1 flex justify-between items-center shrink-0">
+                <span className="text-on-primary-container font-black text-xs uppercase tracking-widest">
+                  PROJECT_EXPLORER.EXE
+                </span>
+                <div className="flex gap-1">
+                  <div className="w-5 h-5 bevel-raised bg-primary flex items-center justify-center">
+                    <span className="block w-2 h-0.5 bg-on-primary" />
+                  </div>
+                  <div className="w-5 h-5 bevel-raised bg-primary flex items-center justify-center">
+                    <span className="block w-2 h-2 border border-on-primary" />
+                  </div>
+                  <div className="w-5 h-5 bevel-raised bg-error flex items-center justify-center text-white text-[10px] font-bold">
+                    X
+                  </div>
+                </div>
+              </div>
+
+              {/* Toolbar */}
+              <div className="bg-surface-container-low p-2 border-b-2 border-indigo-900 shrink-0 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-secondary px-1">
+                  <span className="font-mono text-violet-500/80">PATH:</span>
+                  <span className="text-primary font-mono tracking-wider truncate max-w-[200px]">{path}</span>
+                </div>
+
+                {/* Mobile category select */}
+                {categories.length > 0 && (
+                  <div className="md:hidden flex items-center gap-2 text-[10px] font-bold text-secondary">
+                    <select
+                      className="bg-surface-container-lowest border border-secondary/30 text-secondary text-[10px] px-1 py-0.5 focus:outline-none uppercase"
+                      value={activeCategory || ''}
+                      onChange={(e) => {
+                        setActiveCategory(e.target.value || null);
+                        setActiveTag(null);
+                      }}
+                    >
+                      <option value="">ALL_PROJECTS</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Tag filters */}
+                {allTags.length > 0 && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {allTags.map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => setActiveTag(tag === activeTag ? null : tag)}
+                        className={`text-[9px] px-1.5 py-0.5 font-bold uppercase ${
+                          activeTag === tag
+                            ? 'bg-secondary text-on-secondary'
+                            : 'border border-secondary/30 text-secondary/60 hover:border-secondary hover:text-secondary'
+                        }`}
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Project grid */}
+              <div className="flex-1 overflow-y-auto bg-surface-container-highest p-4 scrollbar-pixel">
+                {projects.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-2 text-on-surface-variant">
+                    <span className="material-symbols-outlined text-4xl">folder_off</span>
+                    <span className="font-bold text-xs uppercase">NO_OBJECTS_FOUND</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {projects.map((project) => (
+                      <ProjectCard key={project.id} project={project} isAdmin={isAdmin} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Status bar */}
+              <div className="bg-surface-container-low px-3 py-1 border-t-2 border-indigo-900 text-[9px] font-bold text-violet-400 flex justify-between items-center shrink-0">
+                <span>{projects.length} OBJECT(S) FOUND</span>
+                <span>SYSTEM: NOMINAL</span>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Fixed Footer Taskbar */}
+      <footer
+        className="fixed bottom-0 left-0 w-full h-12 bg-indigo-900/90 backdrop-blur-xl z-50 flex items-center px-2 gap-2 border-t-4 border-indigo-950"
+        style={{ boxShadow: '0 -4px 20px rgba(0,227,253,0.2), inset 2px 2px 0px #b99fff' }}
+      >
+        <button
+          className="flex items-center gap-2 px-4 h-9 bg-violet-600 text-white font-black text-[10px] tracking-tight uppercase scale-95"
+          style={{ boxShadow: 'inset 3px 3px 0px #38008d' }}
+        >
+          <span className="material-symbols-outlined text-lg">apps</span>
+          START
+        </button>
+        <div className="h-9 w-[2px] bg-indigo-950 mx-1" />
+        <div className="flex items-center gap-1">
+          <button
+            className="flex items-center gap-2 px-3 h-9 bg-violet-600 text-white font-bold text-[10px] border-r border-indigo-950 scale-95"
+            style={{ boxShadow: 'inset 3px 3px 0px #38008d' }}
+          >
+            <span className="material-symbols-outlined text-sm">folder_special</span>
+            EXPLORER
+          </button>
+          {isAdmin && (
+            <Link
+              href="/admin/dashboard"
+              className="flex items-center gap-2 px-3 h-9 text-violet-300 hover:bg-indigo-800 hover:text-cyan-200 font-bold text-[10px]"
+            >
+              <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
+              ADMIN
+            </Link>
+          )}
+        </div>
+        <div className="flex-1" />
+        <div
+          className="flex items-center gap-2 px-3 bevel-pressed h-9 bg-indigo-950/50"
+        >
+          <span className="material-symbols-outlined text-secondary text-sm">search</span>
+          <div className="h-4 w-[1px] bg-indigo-900" />
+          <CyberClock />
+        </div>
+      </footer>
     </div>
   );
 }
