@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     response_format: 'url',
   });
 
-  const imageUrl = response.data[0]?.url;
+  const imageUrl = response.data?.[0]?.url;
   if (!imageUrl) return NextResponse.json({ error: 'No image returned' }, { status: 500 });
 
   // Download the image from OpenAI (URL expires ~1hr)
