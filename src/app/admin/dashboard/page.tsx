@@ -14,6 +14,7 @@ interface Project {
   id: string;
   name: string;
   description: string | null;
+  longDescription: string | null;
   url: string | null;
   imageUrl: string | null;
   urlPublic: boolean;
@@ -26,6 +27,7 @@ interface Project {
 const emptyForm = {
   name: '',
   description: '',
+  longDescription: '',
   url: '',
   imageUrl: '',
   urlPublic: true,
@@ -89,6 +91,7 @@ export default function DashboardPage() {
     setForm({
       name: p.name,
       description: p.description || '',
+      longDescription: p.longDescription || '',
       url: p.url || '',
       imageUrl: p.imageUrl || '',
       urlPublic: p.urlPublic,
@@ -113,6 +116,7 @@ export default function DashboardPage() {
     const payload = {
       name: form.name,
       description: form.description || null,
+      longDescription: form.longDescription || null,
       url: form.url || null,
       imageUrl: form.imageUrl || null,
       urlPublic: form.urlPublic,
@@ -381,17 +385,31 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        <div>
-                          <label className="text-[9px] text-on-surface-variant mb-1 block font-bold uppercase tracking-widest">
-                            DESCRIPTION
-                          </label>
-                          <textarea
-                            value={form.description}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                            rows={3}
-                            className={`${inputClass} resize-none`}
-                            placeholder="description..."
-                          />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[9px] text-on-surface-variant mb-1 block font-bold uppercase tracking-widest">
+                              SHORT_DESCRIPTION
+                            </label>
+                            <textarea
+                              value={form.description}
+                              onChange={(e) => setForm({ ...form, description: e.target.value })}
+                              rows={3}
+                              className={`${inputClass} resize-none`}
+                              placeholder="10-word summary..."
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[9px] text-on-surface-variant mb-1 block font-bold uppercase tracking-widest">
+                              LONG_DESCRIPTION
+                            </label>
+                            <textarea
+                              value={form.longDescription}
+                              onChange={(e) => setForm({ ...form, longDescription: e.target.value })}
+                              rows={3}
+                              className={`${inputClass} resize-none`}
+                              placeholder="full description..."
+                            />
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

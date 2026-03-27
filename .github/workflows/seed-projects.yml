@@ -1,0 +1,34 @@
+name: Seed Projects
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Encode seed script as base64
+        run: echo "SEED_B64=$(base64 -w0 prisma/seed-projects.js)" >> $GITHUB_ENV
+
+      - name: Run seed on EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: SEED_B64
+          script: |
+            cd /home/ubuntu/rajuan-app
+            # Decode script and copy into the running container
+            echo "$SEED_B64" | base64 -d > /tmp/seed-projects.js
+            CONTAINER=$(docker compose ps -q app)
+            docker cp /tmp/seed-projects.js "$CONTAINER":/app/seed-projects.js
+            docker compose exec -T app node seed-projects.js
+            # Cleanup
+            docker compose exec -T app rm seed-projects.js
+            rm /tmp/seed-projects.js
+            echo "Seeding complete."

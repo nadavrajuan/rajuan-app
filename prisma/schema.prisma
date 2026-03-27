@@ -23,8 +23,9 @@ model Category {
 model Project {
   id          String   @id @default(cuid())
   name        String
-  description String?  @db.Text
-  url         String?
+  description     String?  @db.Text
+  longDescription String?  @db.Text
+  url             String?
   urlPublic   Boolean  @default(true)  // false = url visible to admin only
   isPublic    Boolean  @default(true)  // false = only admin can see this card
   imageUrl    String?

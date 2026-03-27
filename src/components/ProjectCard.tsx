@@ -33,7 +33,7 @@ export default function ProjectCard({
     : '/ROOT/PROJECTS/MISC';
 
   return (
-    <div className="bevel-raised bg-surface-container-low p-2 flex flex-col gap-2 hover:bg-surface-container-high group">
+    <div className="bevel-raised bg-surface-container-low p-3 flex flex-col gap-3 hover:bg-surface-container-high group">
       {/* Thumbnail */}
       <div
         className="aspect-video w-full bevel-pressed overflow-hidden relative"
@@ -70,20 +70,20 @@ export default function ProjectCard({
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-1">
-        <div className="font-mono text-[7px] text-violet-500/70 truncate">{path}</div>
-        <h3 className="text-xs font-black text-primary truncate uppercase">{project.name}</h3>
+      <div className="flex flex-col gap-1.5">
+        <div className="font-mono text-[9px] text-violet-500/70 truncate">{path}</div>
+        <h3 className="text-sm font-black text-primary truncate uppercase">{project.name}</h3>
         {project.description && (
-          <p className="text-[10px] text-on-surface-variant line-clamp-2 leading-relaxed">
+          <p className="text-xs text-on-surface-variant line-clamp-3 leading-relaxed">
             {project.description}
           </p>
         )}
         {project.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {project.tags.slice(0, 3).map((tag) => (
+            {project.tags.slice(0, 4).map((tag) => (
               <span
                 key={tag}
-                className="text-[8px] font-bold bg-indigo-900 text-violet-300 px-1 border border-violet-500/30"
+                className="text-[9px] font-bold bg-indigo-900 text-violet-300 px-1.5 py-0.5 border border-violet-500/30"
               >
                 {tag}
               </span>
@@ -93,12 +93,12 @@ export default function ProjectCard({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-1 mt-auto">
+      <div className="flex gap-1.5 mt-auto">
         <Link
           href={`/project/${project.id}`}
-          className="flex-1 bevel-raised bg-surface-container-high text-primary py-1.5 font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary hover:text-on-primary"
+          className="flex-1 bevel-raised bg-surface-container-high text-primary py-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary hover:text-on-primary"
         >
-          <span className="material-symbols-outlined text-[12px]">info</span>
+          <span className="material-symbols-outlined text-sm">info</span>
           INFO
         </Link>
         {project.url && (project.urlPublic || isAdmin) && (
@@ -106,7 +106,7 @@ export default function ProjectCard({
             href={project.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 bevel-raised bg-primary text-on-primary py-1.5 font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary-container"
+            className="flex-1 bevel-raised bg-primary text-on-primary py-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary-container"
           >
             <span className="material-symbols-outlined text-[12px]">rocket_launch</span>
             VISIT

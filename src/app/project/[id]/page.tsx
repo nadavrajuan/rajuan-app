@@ -100,11 +100,20 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             {/* Project name */}
             <h1 className="text-2xl font-black text-primary uppercase leading-tight">{project.name}</h1>
 
-            {/* Description */}
+            {/* Short description */}
             {project.description && (
-              <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-wrap">
+              <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-wrap font-medium">
                 {project.description}
               </p>
+            )}
+
+            {/* Long description */}
+            {project.longDescription && (
+              <div className="border-t border-violet-500/20 pt-4">
+                <p className="text-on-surface-variant/80 text-sm leading-relaxed whitespace-pre-wrap">
+                  {project.longDescription}
+                </p>
+              </div>
             )}
 
             {/* Tags */}
