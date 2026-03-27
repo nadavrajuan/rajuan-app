@@ -1,58 +1,88 @@
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { prisma } from '@/lib/db';
-import { getAdminSession } from '@/lib/auth';
-import TodoSection from '@/components/TodoSection';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { useEffect, useState } from 'react';
+import TodoSection from './TodoSection';
 
-export default async function ProjectPage({ params }: { params: { id: string } }) {
-  const session = await getAdminSession();
-  const isAdmin = !!session;
+interface Category { id: string; name: string }
 
-  const project = await prisma.project.findUnique({
-    where: { id: params.id },
-    include: { category: true },
-  });
+interface Project {
+  id: string;
+  name: string;
+  description: string | null;
+  longDescription: string | null;
+  url: string | null;
+  urlPublic: boolean;
+  isPublic: boolean;
+  isIdea: boolean;
+  imageUrl: string | null;
+  tags: string[];
+  category: Category | null;
+  createdAt: string;
+}
 
-  if (!project || (!isAdmin && !project.isPublic)) notFound();
+interface Todo {
+  id: string;
+  text: string;
+  done: boolean;
+  adminOnly: boolean;
+  createdAt: string;
+}
 
-  const showUrl = isAdmin || project.urlPublic;
-  const hasHiddenUrl = !project.url && !project.urlPublic;
+export default function ProjectModal({
+  project,
+  isAdmin,
+  onClose,
+}: {
+  project: Project;
+  isAdmin: boolean;
+  onClose: () => void;
+}) {
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [todosLoaded, setTodosLoaded] = useState(false);
+
+  // ESC to close
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  // Lock body scroll
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
+  // Fetch todos
+  useEffect(() => {
+    fetch(`/api/projects/${project.id}/todos`)
+      .then((r) => r.json())
+      .then((data) => { setTodos(data); setTodosLoaded(true); });
+  }, [project.id]);
 
   const sectionLabel = project.isIdea ? 'IDEAS' : 'PROJECTS';
   const path = project.category
     ? `/ROOT/${sectionLabel}/${project.category.name.toUpperCase().replace(/\s/g, '_')}/${project.name.toUpperCase().replace(/\s/g, '_')}`
     : `/ROOT/${sectionLabel}/MISC/${project.name.toUpperCase().replace(/\s/g, '_')}`;
 
-  const rawTodos = await prisma.todo.findMany({
-    where: { projectId: params.id, ...(isAdmin ? {} : { adminOnly: false }) },
-    orderBy: { createdAt: 'asc' },
-  });
-  const todos = rawTodos.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() }));
+  const showUrl = isAdmin || project.urlPublic;
+  const hasHiddenUrl = !project.url && !project.urlPublic;
 
   return (
-    <div className="bg-background text-on-background min-h-screen font-sans relative overflow-hidden">
-      <div className="fixed inset-0 crt-overlay z-[100] pointer-events-none" />
-      <div className="fixed inset-0 z-0 bg-gradient-to-b from-indigo-950/50 via-transparent to-violet-950/80 pointer-events-none" />
-      <div className="fixed inset-0 z-0 retro-grid pointer-events-none" />
+    <div className="fixed inset-0 z-[200] overflow-y-auto">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-      <header
-        className="fixed top-0 w-full h-8 border-b-2 border-violet-400 bg-violet-950/80 backdrop-blur-md flex items-center px-4 z-50"
-        style={{ boxShadow: 'inset 2px 2px 0px #b99fff, 0 0 15px rgba(185,159,255,0.3)' }}
-      >
-        <Link href="/" className="text-[10px] text-secondary font-bold uppercase hover:text-primary flex items-center gap-1">
-          <span className="material-symbols-outlined text-xs">arrow_back</span>
-          BACK_TO_EXPLORER
-        </Link>
-        <div className="flex-1" />
-        <span className="text-primary font-black tracking-widest uppercase text-xs">RAJUAN.EXE</span>
-      </header>
-
-      <main className="relative z-10 flex items-center justify-center min-h-screen px-4 py-16">
+      {/* Centering wrapper */}
+      <div className="relative z-10 flex min-h-full items-center justify-center p-4 pointer-events-none">
+        {/* Window */}
         <div
-          className="w-full max-w-2xl bevel-raised bg-surface-container"
-          style={{ boxShadow: '8px 8px 0px 0px rgba(26,28,28,0.5)' }}
+          className="w-full max-w-2xl bevel-raised bg-surface-container pointer-events-auto"
+          style={{ boxShadow: '8px 8px 0px 0px rgba(26,28,28,0.7)' }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Title bar */}
           <div className="bg-primary-container px-3 py-1 flex justify-between items-center">
@@ -63,13 +93,18 @@ export default async function ProjectPage({ params }: { params: { id: string } }
               <div className="w-5 h-5 bevel-raised bg-primary flex items-center justify-center">
                 <span className="block w-2 h-0.5 bg-on-primary" />
               </div>
-              <Link href="/" className="w-5 h-5 bevel-raised bg-error flex items-center justify-center text-white text-[10px] font-bold">
+              <button
+                onClick={onClose}
+                className="w-5 h-5 bevel-raised bg-error flex items-center justify-center text-white text-[10px] font-bold hover:brightness-125"
+              >
                 X
-              </Link>
+              </button>
             </div>
           </div>
 
+          {/* Body */}
           <div className="bg-surface-container-low">
+            {/* Image */}
             {project.imageUrl && (
               <div className="bevel-pressed overflow-hidden aspect-video">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -78,11 +113,15 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             )}
 
             <div className="p-6 space-y-5">
+              {/* Path */}
               <div className="font-mono text-[9px] text-violet-500/70 break-all">{path}</div>
 
+              {/* Badges */}
               <div className="flex items-center gap-2 flex-wrap">
                 {project.isIdea && (
-                  <span className="text-[10px] font-bold bg-violet-800 text-violet-200 px-2 py-0.5 border border-violet-400/30 uppercase">IDEA</span>
+                  <span className="text-[10px] font-bold bg-violet-800 text-violet-200 px-2 py-0.5 border border-violet-400/30 uppercase">
+                    IDEA
+                  </span>
                 )}
                 {project.category && (
                   <span className="text-[10px] font-bold bg-indigo-900 text-violet-300 px-2 py-0.5 border border-violet-500/30 uppercase">
@@ -97,14 +136,17 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                 )}
               </div>
 
-              <h1 className="text-2xl font-black text-primary uppercase leading-tight">{project.name}</h1>
+              {/* Name */}
+              <h2 className="text-2xl font-black text-primary uppercase leading-tight">{project.name}</h2>
 
+              {/* Short description */}
               {project.description && (
                 <p className="text-on-surface-variant text-sm leading-relaxed whitespace-pre-wrap font-medium">
                   {project.description}
                 </p>
               )}
 
+              {/* Long description */}
               {project.longDescription && (
                 <div className="border-t border-violet-500/20 pt-4">
                   <p className="text-on-surface-variant/80 text-sm leading-relaxed whitespace-pre-wrap">
@@ -113,6 +155,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                 </div>
               )}
 
+              {/* Tags */}
               {project.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {project.tags.map((tag) => (
@@ -123,6 +166,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                 </div>
               )}
 
+              {/* Action buttons */}
               <div className="flex gap-3 flex-wrap">
                 {showUrl && project.url && (
                   <a
@@ -148,8 +192,12 @@ export default async function ProjectPage({ params }: { params: { id: string } }
                 )}
               </div>
 
-              <TodoSection projectId={project.id} initialTodos={todos} isAdmin={isAdmin} />
+              {/* Todos */}
+              {todosLoaded && (
+                <TodoSection projectId={project.id} initialTodos={todos} isAdmin={isAdmin} />
+              )}
 
+              {/* Metadata */}
               <div className="bg-surface-container-high -mx-6 px-6 py-3 mt-4 flex justify-between items-center">
                 <span className="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider">METADATA</span>
                 <span className="font-mono text-[10px] text-on-surface-variant">
@@ -162,29 +210,7 @@ export default async function ProjectPage({ params }: { params: { id: string } }
             </div>
           </div>
         </div>
-      </main>
-
-      <footer
-        className="fixed bottom-0 left-0 w-full h-12 bg-indigo-900/90 backdrop-blur-xl z-50 flex items-center px-2 gap-2 border-t-4 border-indigo-950"
-        style={{ boxShadow: '0 -4px 20px rgba(0,227,253,0.2), inset 2px 2px 0px #b99fff' }}
-      >
-        <Link
-          href="/"
-          className="flex items-center gap-2 px-4 h-9 bg-violet-600 text-white font-black text-[10px] tracking-tight uppercase scale-95"
-          style={{ boxShadow: 'inset 3px 3px 0px #38008d' }}
-        >
-          <span className="material-symbols-outlined text-lg">apps</span>
-          START
-        </Link>
-        <div className="h-9 w-[2px] bg-indigo-950 mx-1" />
-        <button
-          className="flex items-center gap-2 px-3 h-9 bg-violet-600 text-white font-bold text-[10px] scale-95"
-          style={{ boxShadow: 'inset 3px 3px 0px #38008d' }}
-        >
-          <span className="material-symbols-outlined text-sm">description</span>
-          {project.name.toUpperCase().replace(/\s/g, '_').slice(0, 20)}.EXE
-        </button>
-      </footer>
+      </div>
     </div>
   );
 }

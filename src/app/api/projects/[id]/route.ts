@@ -17,6 +17,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({
     ...project,
     url: isAdmin || project.urlPublic ? project.url : null,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
   });
 }
 
@@ -25,7 +27,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
-  const { name, description, longDescription, url, imageUrl, urlPublic, isPublic, tags, categoryId } = body;
+  const { name, description, longDescription, url, imageUrl, urlPublic, isPublic, isIdea, tags, categoryId } = body;
 
   const project = await prisma.project.update({
     where: { id: params.id },
@@ -37,13 +39,18 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       imageUrl: imageUrl ?? undefined,
       urlPublic: urlPublic ?? undefined,
       isPublic: isPublic ?? undefined,
+      isIdea: isIdea ?? undefined,
       tags: tags ?? undefined,
       categoryId: categoryId ?? undefined,
     },
     include: { category: true },
   });
 
-  return NextResponse.json(project);
+  return NextResponse.json({
+    ...project,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
+  });
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {

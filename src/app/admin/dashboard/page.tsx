@@ -19,6 +19,7 @@ interface Project {
   imageUrl: string | null;
   urlPublic: boolean;
   isPublic: boolean;
+  isIdea: boolean;
   tags: string[];
   category: Category | null;
   categoryId: string | null;
@@ -32,6 +33,7 @@ const emptyForm = {
   imageUrl: '',
   urlPublic: true,
   isPublic: true,
+  isIdea: false,
   tags: [] as string[],
   categoryId: '',
 };
@@ -47,7 +49,7 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
-  const [activeSection, setActiveSection] = useState<'projects' | 'categories'>('projects');
+  const [activeSection, setActiveSection] = useState<'projects' | 'ideas' | 'categories'>('projects');
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -70,7 +72,7 @@ export default function DashboardPage() {
 
   async function load() {
     const [projs, cats] = await Promise.all([
-      fetch('/api/projects').then((r) => r.json()),
+      fetch('/api/projects?all=true').then((r) => r.json()),
       fetch('/api/categories').then((r) => r.json()),
     ]);
     setProjects(projs);
@@ -93,6 +95,7 @@ export default function DashboardPage() {
       description: p.description || '',
       longDescription: p.longDescription || '',
       url: p.url || '',
+      isIdea: p.isIdea,
       imageUrl: p.imageUrl || '',
       urlPublic: p.urlPublic,
       isPublic: p.isPublic,
@@ -121,6 +124,7 @@ export default function DashboardPage() {
       imageUrl: form.imageUrl || null,
       urlPublic: form.urlPublic,
       isPublic: form.isPublic,
+      isIdea: form.isIdea,
       tags: form.tags,
       categoryId: form.categoryId || null,
     };
@@ -255,7 +259,7 @@ export default function DashboardPage() {
               <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
                 folder_special
               </span>
-              <span>PROJECTS ({projects.length})</span>
+              <span>PROJECTS ({projects.filter((p) => !p.isIdea).length})</span>
             </div>
 
             {/* Sub-items: categories */}
@@ -270,6 +274,21 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
+
+            {/* Ideas section */}
+            <div
+              className={`px-4 py-2 flex items-center gap-3 cursor-pointer ${
+                activeSection === 'ideas'
+                  ? 'bg-primary text-on-primary border-t-2 border-l-2 border-white border-b-2 border-r-2 border-black/60'
+                  : 'text-secondary opacity-80 hover:bg-primary-dim/20'
+              }`}
+              onClick={() => { setActiveSection('ideas'); setShowForm(false); }}
+            >
+              <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
+                lightbulb
+              </span>
+              <span>IDEAS ({projects.filter((p) => p.isIdea).length})</span>
+            </div>
 
             {/* Categories section */}
             <div
@@ -325,12 +344,16 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {activeSection === 'projects' && !showForm && (
+                {(activeSection === 'projects' || activeSection === 'ideas') && !showForm && (
                   <button
-                    onClick={() => setShowForm(true)}
+                    onClick={() => {
+                      setForm({ ...emptyForm, isIdea: activeSection === 'ideas' });
+                      setEditingId(null);
+                      setShowForm(true);
+                    }}
                     className="bevel-raised bg-secondary text-on-secondary px-3 py-1 text-[10px] font-black uppercase"
                   >
-                    + NEW_FILE
+                    + NEW_{activeSection === 'ideas' ? 'IDEA' : 'FILE'}
                   </button>
                 )}
                 {showForm && (
@@ -347,8 +370,8 @@ export default function DashboardPage() {
             {/* Content area */}
             <div className="flex-1 p-4 space-y-4">
 
-              {/* ── PROJECTS SECTION ── */}
-              {activeSection === 'projects' && (
+              {/* ── PROJECTS / IDEAS SECTION ── */}
+              {(activeSection === 'projects' || activeSection === 'ideas') && (
                 <>
                   {/* Project form */}
                   {showForm && (
@@ -503,6 +526,15 @@ export default function DashboardPage() {
                             />
                             URL_PUBLIC
                           </label>
+                          <label className="flex items-center gap-2 cursor-pointer text-[10px] font-bold text-violet-300 uppercase">
+                            <input
+                              type="checkbox"
+                              checked={form.isIdea}
+                              onChange={(e) => setForm({ ...form, isIdea: e.target.checked })}
+                              className="accent-violet-400 w-4 h-4"
+                            />
+                            IS_IDEA
+                          </label>
                         </div>
 
                         <button
@@ -519,12 +551,12 @@ export default function DashboardPage() {
 
                   {/* Project list */}
                   <div className="space-y-2">
-                    {projects.length === 0 ? (
+                    {projects.filter((p) => (activeSection === 'ideas' ? p.isIdea : !p.isIdea)).length === 0 ? (
                       <div className="text-center py-8 text-on-surface-variant text-xs font-bold uppercase">
                         NO FILES DETECTED
                       </div>
                     ) : (
-                      projects.map((p) => (
+                      projects.filter((p) => (activeSection === 'ideas' ? p.isIdea : !p.isIdea)).map((p) => (
                         <div
                           key={p.id}
                           className="flex items-center gap-3 bevel-raised bg-surface-container-high px-3 py-2 hover:bg-surface-container-highest"

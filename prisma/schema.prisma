@@ -21,17 +21,29 @@ model Category {
 }
 
 model Project {
-  id          String   @id @default(cuid())
-  name        String
-  description     String?  @db.Text
-  longDescription String?  @db.Text
+  id              String    @id @default(cuid())
+  name            String
+  description     String?   @db.Text
+  longDescription String?   @db.Text
   url             String?
-  urlPublic   Boolean  @default(true)  // false = url visible to admin only
-  isPublic    Boolean  @default(true)  // false = only admin can see this card
-  imageUrl    String?
-  tags        String[] @default([])
-  categoryId  String?
-  category    Category? @relation(fields: [categoryId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  urlPublic       Boolean   @default(true)
+  isPublic        Boolean   @default(true)
+  isIdea          Boolean   @default(false)
+  imageUrl        String?
+  tags            String[]  @default([])
+  categoryId      String?
+  category        Category? @relation(fields: [categoryId], references: [id])
+  todos           Todo[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Todo {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  text      String
+  done      Boolean  @default(false)
+  adminOnly Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

@@ -2,16 +2,19 @@
 
 import Link from 'next/link';
 
-interface Project {
+export interface CardProject {
   id: string;
   name: string;
   description: string | null;
+  longDescription: string | null;
   url: string | null;
-  imageUrl: string | null;
   urlPublic: boolean;
   isPublic: boolean;
+  isIdea: boolean;
+  imageUrl: string | null;
   tags: string[];
   category: { id: string; name: string } | null;
+  createdAt: string;
 }
 
 function getCardGradient(name: string): string {
@@ -24,13 +27,37 @@ function getCardGradient(name: string): string {
 export default function ProjectCard({
   project,
   isAdmin,
+  onSelect,
 }: {
-  project: Project;
+  project: CardProject;
   isAdmin: boolean;
+  onSelect?: (project: CardProject) => void;
 }) {
+  const sectionLabel = project.isIdea ? 'IDEAS' : 'PROJECTS';
   const path = project.category
-    ? `/ROOT/PROJECTS/${project.category.name.toUpperCase().replace(/\s/g, '_')}`
-    : '/ROOT/PROJECTS/MISC';
+    ? `/ROOT/${sectionLabel}/${project.category.name.toUpperCase().replace(/\s/g, '_')}`
+    : `/ROOT/${sectionLabel}/MISC`;
+
+  // URL is hidden (non-admin): url is null but urlPublic is false
+  const hasHiddenUrl = !project.url && !project.urlPublic;
+
+  const infoButton = onSelect ? (
+    <button
+      onClick={() => onSelect(project)}
+      className="flex-1 bevel-raised bg-surface-container-high text-primary py-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary hover:text-on-primary"
+    >
+      <span className="material-symbols-outlined text-sm">info</span>
+      INFO
+    </button>
+  ) : (
+    <Link
+      href={`/project/${project.id}`}
+      className="flex-1 bevel-raised bg-surface-container-high text-primary py-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary hover:text-on-primary"
+    >
+      <span className="material-symbols-outlined text-sm">info</span>
+      INFO
+    </Link>
+  );
 
   return (
     <div className="bevel-raised bg-surface-container-low p-3 flex flex-col gap-3 hover:bg-surface-container-high group">
@@ -41,30 +68,27 @@ export default function ProjectCard({
       >
         {project.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={project.imageUrl}
-            alt={project.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={project.imageUrl} alt={project.name} className="w-full h-full object-cover" />
         ) : (
           <>
             <div className="absolute inset-0 retro-grid opacity-60" />
             <div className="absolute inset-0 flex items-center justify-center opacity-20">
-              <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                folder_zip
+              <span
+                className="material-symbols-outlined text-primary text-5xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                {project.isIdea ? 'lightbulb' : 'folder_zip'}
               </span>
             </div>
           </>
         )}
-        {/* Admin badges */}
+        {/* Badges */}
         <div className="absolute top-1 right-1 flex gap-1">
           {isAdmin && !project.isPublic && (
             <span className="bg-amber-600 text-black text-[8px] font-bold px-1 py-0.5">PRIVATE</span>
           )}
-          {isAdmin && project.url && !project.urlPublic && (
-            <span className="bg-secondary text-on-secondary text-[8px] font-bold px-1 py-0.5">
-              LINK_HIDDEN
-            </span>
+          {isAdmin && !project.urlPublic && (
+            <span className="bg-secondary text-on-secondary text-[8px] font-bold px-1 py-0.5">LINK_HIDDEN</span>
           )}
         </div>
       </div>
@@ -94,13 +118,7 @@ export default function ProjectCard({
 
       {/* Actions */}
       <div className="flex gap-1.5 mt-auto">
-        <Link
-          href={`/project/${project.id}`}
-          className="flex-1 bevel-raised bg-surface-container-high text-primary py-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary hover:text-on-primary"
-        >
-          <span className="material-symbols-outlined text-sm">info</span>
-          INFO
-        </Link>
+        {infoButton}
         {project.url && (project.urlPublic || isAdmin) && (
           <a
             href={project.url}
@@ -108,8 +126,19 @@ export default function ProjectCard({
             rel="noopener noreferrer"
             className="flex-1 bevel-raised bg-primary text-on-primary py-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-primary-container"
           >
-            <span className="material-symbols-outlined text-[12px]">rocket_launch</span>
+            <span className="material-symbols-outlined text-sm">rocket_launch</span>
             VISIT
+          </a>
+        )}
+        {hasHiddenUrl && !isAdmin && (
+          <a
+            href="https://wa.me/+972522708760"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bevel-raised bg-surface-container-high text-secondary py-2 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1 hover:bg-surface-container-highest border border-secondary/30"
+          >
+            <span className="material-symbols-outlined text-sm">lock</span>
+            REQUEST
           </a>
         )}
       </div>
